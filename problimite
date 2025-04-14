@@ -2,30 +2,40 @@ import numpy as np
 from tridiagonal import tridiagonal
 
 def problimite(h, P, Q, R, a, b, alpha, beta):
-    n = len(P) - 2
-    x = np.linspace(a, b, n + 2)
-
-    D = np.zeros(n)
-    I = np.zeros(n - 1)
-    S = np.zeros(n - 1)
-    b_vec = np.zeros(n)
-
-    for i in range(n):
-        D[i] = 2 / h**2 + Q[i + 1]
-        if i > 0:
-            I[i - 1] = -1 / h**2 - P[i + 1] / (2 * h)
-        if i < n - 1:
-            S[i] = -1 / h**2 + P[i + 1] / (2 * h)
-        b_vec[i] = R[i + 1]
-
-    b_vec[0] += (1 / h**2 + P[1] / (2 * h)) * alpha
-    b_vec[-1] += (1 / h**2 - P[-2] / (2 * h)) * beta
-
-    y_internal = tridiagonal(D, I, S, b_vec)
-
-    y = np.zeros(n + 2)
-    y[0] = alpha
-    y[-1] = beta
-    y[1:-1] = y_internal
-
+    """
+    Résout le problème à valeurs aux limites en construisant et en résolvant
+    le système tridiagonal.
+    
+    h : Taille des sous-intervalles
+    P, Q, R : Vecteurs des fonctions p(x), q(x), r(x) aux noeuds xi
+    a, b : Bornes de l'intervalle [a, b]
+    alpha, beta : Conditions aux limites
+    """
+    N = len(P)
+    
+    # Construction des vecteurs D, I, S et b
+    D = 2 + Q * h**2
+    I = -1 + P * h / 2
+    S = -1 - P * h / 2
+    b = R * h**2
+    b[0] += (1 + P[0] * h / 2) * alpha
+    b[-1] += (1 - P[-1] * h / 2) * beta
+    
+    # Résolution du système
+    y = tridiagonal(D, I, S, b)
+    
     return y
+
+# Test avec des valeurs arbitraires
+h = 0.1
+P = np.random.rand(10)
+Q = np.random.rand(10)
+R = np.random.rand(10)
+a = 0
+b = 1
+alpha = 0
+beta = 1
+
+# Résoudre le problème
+y_solution = problimite(h, P, Q, R, a, b, alpha, beta)
+print(y_solution)
