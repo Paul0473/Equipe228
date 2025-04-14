@@ -25,13 +25,3 @@ def tridiagonal(D, I, S, b):
     print(f"Temps de résolution : {end_time - start_time} secondes")
     
     return x
-
-# Test avec une grande matrice
-N = 15000
-D = np.full(N, 4)  # Diagonale principale
-I = np.full(N-1, 1)  # Diagonale inférieure
-S = np.full(N-1, 1)  # Diagonale supérieure
-b = np.random.rand(N)  # Vecteur b arbitraire
-
-# Tester la fonction
-x = tridiagonal(D, I, S, b)
