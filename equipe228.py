@@ -1,28 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tridiagonal import tridiagonal
+from problimite import problimite
 
 # Solution exacte
 def y_exact(x, c, d):
     return (c - 0.4 / x**2) - (c - 0.4 / d) * np.log(x) / np.log(0.9)
-
-# Résoudre le problème de différence finie
-def difference_finite(h):
-    x = np.arange(0.9, 1 + h, h)  # Créer les points xi
-    N = len(x) - 1  # Nombre de points intérieurs
-    
-    # Construire la matrice tridiagonale pour le système linéaire
-    D = 2 + h**2 * 1.6 / x[1:N]
-    I = -1 - h / (2 * x[1:N])  # Diagonale inférieure
-    S = -1 + h / (2 * x[1:N])  # Diagonale supérieure
-    
-    # Constructing the vector b
-    b = - h**2 / x[1:N]**4
-    
-    # Résoudre le système tridiagonal
-    y = tridiagonal(D, I, S, b)
-    
-    return x, y
 
 # Trouver c et d de la solution exacte
 def find_c_d():
@@ -41,7 +23,11 @@ def plot_solution(h_values):
     plt.plot(x_exact, y_exact_vals, label='Solution exacte', color='black')
     
     for h in h_values:
-        x, y = difference_finite(h)
+        P = 1.0 / np.arange(0.9, 1 + h, h)  # Exemple pour P
+        Q = np.ones_like(P)  # Exemple pour Q
+        R = np.ones_like(P)  # Exemple pour R
+        
+        x, y = problimite(h, P, Q, R, 0.9, 1, 0, 0)  # Conditions aux limites: alpha = beta = 0
         plt.plot(x, y, label=f'h = {h}')
     
     plt.xlabel('x')
@@ -59,7 +45,11 @@ def compute_error(h_values):
     errors = []
     
     for h in h_values:
-        x, y = difference_finite(h)
+        P = 1.0 / np.arange(0.9, 1 + h, h)  # Exemple pour P
+        Q = np.ones_like(P)  # Exemple pour Q
+        R = np.ones_like(P)  # Exemple pour R
+        
+        x, y = problimite(h, P, Q, R, 0.9, 1, 0, 0)  # Conditions aux limites: alpha = beta = 0
         y_exact_interp = np.interp(x, x_exact, y_exact_vals)
         error = np.max(np.abs(y - y_exact_interp))
         errors.append(error)
