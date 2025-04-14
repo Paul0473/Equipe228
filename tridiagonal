@@ -1,0 +1,8 @@
+import numpy as np
+from scipy.sparse import diags
+from scipy.sparse.linalg import spsolve
+
+def tridiagonal(D, I, S, b):
+    A = diags([I, D, S], offsets=[-1, 0, 1], format='csr')
+    x = spsolve(A, b)
+    return x

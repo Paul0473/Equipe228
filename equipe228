@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from problimite import problimite
+
+def solve_problem(h):
+    a, b = 0.9, 1.0
+    alpha, beta = 0, 0
+    x = np.arange(a, b + h, h)
+    P = 1 / x
+    Q = np.zeros_like(x)
+    R = -1.6 / x**4
+
+    return x, problimite(h, P, Q, R, a, b, alpha, beta)
+
+def y_exact(x):
+    c = 0.4
+    d = 0.81
+    return (c - 0.4 / x**2) - (c - 0.4 / d) * np.log(x) / np.log(0.9)
+
+# --- a) Graphique pour h = 1/30 et h = 1/100 ---
+for h in [1/30, 1/100]:
+    x, y_num = solve_problem(h)
+    y_ex = y_exact(x)
+
+    plt.plot(x, y_num, label=f"Numérique h={h:.5f}")
+    if h == 1/30:
+        plt.plot(x, y_ex, '--', label="Exacte")
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Comparaison solution numérique vs exacte")
+plt.legend()
+plt.grid()
+plt.show()
+
+# --- b) Graphe de l'erreur E(h) ---
+hs = [1e-2, 1e-3, 1e-4, 1e-5]
+Erreurs = []
+
+for h in hs:
+    x, y_num = solve_problem(h)
+    y_ex = y_exact(x)
+    erreur = np.max(np.abs(y_num - y_ex))
+    Erreurs.append(erreur)
+
+plt.loglog(hs, Erreurs, marker='o')
+plt.xlabel("Pas h (log)")
+plt.ylabel("Erreur E(h) (log)")
+plt.title("Erreur max vs h (log-log)")
+plt.grid(which="both")
+plt.show()

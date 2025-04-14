@@ -1,0 +1,31 @@
+import numpy as np
+from tridiagonal import tridiagonal
+
+def problimite(h, P, Q, R, a, b, alpha, beta):
+    n = len(P) - 2
+    x = np.linspace(a, b, n + 2)
+
+    D = np.zeros(n)
+    I = np.zeros(n - 1)
+    S = np.zeros(n - 1)
+    b_vec = np.zeros(n)
+
+    for i in range(n):
+        D[i] = 2 / h**2 + Q[i + 1]
+        if i > 0:
+            I[i - 1] = -1 / h**2 - P[i + 1] / (2 * h)
+        if i < n - 1:
+            S[i] = -1 / h**2 + P[i + 1] / (2 * h)
+        b_vec[i] = R[i + 1]
+
+    b_vec[0] += (1 / h**2 + P[1] / (2 * h)) * alpha
+    b_vec[-1] += (1 / h**2 - P[-2] / (2 * h)) * beta
+
+    y_internal = tridiagonal(D, I, S, b_vec)
+
+    y = np.zeros(n + 2)
+    y[0] = alpha
+    y[-1] = beta
+    y[1:-1] = y_internal
+
+    return y
