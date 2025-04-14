@@ -26,17 +26,3 @@ def problimite(h, P, Q, R, a, b, alpha, beta):
     y = tridiagonal(D, I, S, b)
     
     return y
-
-# Test avec des valeurs arbitraires
-h = 0.1
-P = np.random.rand(10)
-Q = np.random.rand(10)
-R = np.random.rand(10)
-a = 0
-b = 1
-alpha = 0
-beta = 1
-
-# Résoudre le problème
-y_solution = problimite(h, P, Q, R, a, b, alpha, beta)
-print(y_solution)

@@ -2,75 +2,61 @@ import numpy as np
 import matplotlib.pyplot as plt
 from problimite import problimite
 
+# Définir les bornes et les CL
+a, b = 0.9, 1.0
+alpha, beta = 0, 0
+
 # Solution exacte
-def y_exact(x, c, d):
-    return (c - 0.4 / x**2) - (c - 0.4 / d) * np.log(x) / np.log(0.9)
+def y_exact(x):
+    d = 1.0
+    c = 0.4 / d
+    return (c - 0.4 / x**2) - (c - 0.4 / d) * (np.log(x) / np.log(0.9))
 
-# Trouver c et d de la solution exacte
-def find_c_d():
-    # Utiliser les conditions aux limites pour déterminer c et d
-    # y(0.9) = 0, y(1) = 0
-    c = 0.4 / 0.9**2
-    d = 0.9
-    return c, d
+# Fonctions p(x), q(x), r(x) pour le problème
+def generate_PQR(x):
+    P = 1 / x
+    Q = 0 * x
+    R = -1.6 / x**4
+    return P, Q, R
 
-# Tracer la solution
-def plot_solution(h_values):
-    c, d = find_c_d()
-    x_exact = np.linspace(0.9, 1, 1000)
-    y_exact_vals = y_exact(x_exact, c, d)
-    
-    plt.plot(x_exact, y_exact_vals, label='Solution exacte', color='black')
-    
-    for h in h_values:
-        P = 1.0 / np.arange(0.9, 1 + h, h)  # Exemple pour P
-        Q = np.ones_like(P)  # Exemple pour Q
-        R = np.ones_like(P)  # Exemple pour R
-        
-        x, y = problimite(h, P, Q, R, 0.9, 1, 0, 0)  # Conditions aux limites: alpha = beta = 0
-        plt.plot(x, y, label=f'h = {h}')
-    
-    plt.xlabel('x')
-    plt.ylabel('y(x)')
-    plt.legend()
-    plt.title('Solutions approximées vs Solution exacte')
-    plt.show()
+# a) Comparaison pour h = 1/30 et h = 1/100
+for h in [1/30, 1/100]:
+    x = np.arange(a + h, b, h)
+    P, Q, R = generate_PQR(x)
+    y_num = problimite(h, P, Q, R, a, b, alpha, beta)
+    y_ex = y_exact(x)
 
-# Calcul de l'erreur
-def compute_error(h_values):
-    c, d = find_c_d()
-    x_exact = np.linspace(0.9, 1, 1000)
-    y_exact_vals = y_exact(x_exact, c, d)
+    plt.plot(x, y_num, label=f"Approx. h={h:.4f}")
     
-    errors = []
-    
-    for h in h_values:
-        P = 1.0 / np.arange(0.9, 1 + h, h)  # Exemple pour P
-        Q = np.ones_like(P)  # Exemple pour Q
-        R = np.ones_like(P)  # Exemple pour R
-        
-        x, y = problimite(h, P, Q, R, 0.9, 1, 0, 0)  # Conditions aux limites: alpha = beta = 0
-        y_exact_interp = np.interp(x, x_exact, y_exact_vals)
-        error = np.max(np.abs(y - y_exact_interp))
-        errors.append(error)
-    
-    return errors
+# Tracer la solution exacte
+x_exact = np.linspace(a, b, 1000)
+y_exact_vals = y_exact(x_exact)
+plt.plot(x_exact, y_exact_vals, 'k--', label="Solution exacte")
 
-# Tracer l'erreur
-def plot_error():
-    h_values = [10**(-i) for i in range(2, 6)]
-    errors = compute_error(h_values)
-    
-    plt.loglog(h_values, errors, marker='o')
-    plt.xlabel('h')
-    plt.ylabel('E(h)')
-    plt.title('Erreur maximale en fonction de h')
-    plt.grid(True)
-    plt.show()
+plt.xlabel("x")
+plt.ylabel("y(x)")
+plt.title("Comparaison des solutions numériques et exactes")
+plt.legend()
+plt.grid(True)
+plt.show()
 
-# Exécution
-h_values = [1/30, 1/100]
-plot_solution(h_values)
+# b) Calcul de l'erreur E(h) pour h = 10^-2, ..., 10^-5
+hs = [10**(-i) for i in range(2, 6)]
+errors = []
 
-# Tracer l'erreur
-plot_error()
+for h in hs:
+    x = np.arange(a + h, b, h)
+    P, Q, R = generate_PQR(x)
+    y_num = problimite(h, P, Q, R, a, b, alpha, beta)
+    y_ex = y_exact(x)
+    E = np.max(np.abs(y_num - y_ex))
+    errors.append(E)
+
+# Tracer E(h) en échelle log-log
+plt.loglog(hs, errors, 'o-', label="Erreur E(h)")
+plt.xlabel("h")
+plt.ylabel("Erreur maximale E(h)")
+plt.title("Erreur en fonction de h (log-log)")
+plt.grid(True, which='both')
+plt.legend()
+plt.show()
