@@ -38,40 +38,44 @@ plt.grid()
 plt.legend()
 plt.show()
 
-#fcts pour fg 2
-hs = np.array([1e-2, 1e-3, 1e-4, 1e-5])
+#fcts fig 2
+h_values = [10**(-k) for k in range(2, 6)]  # h = 1e-2 à 1e-5
 errors = []
 
-for h in hs:
+for h in h_values:
     N = int((b - a)/h) - 1
     x_interior = np.linspace(a + h, b - h, N)
-    P, Q, R = p(x_interior), q(x_interior), r(x_interior)
-    y, x_full = problimite(h, P, Q, R, a, b, alpha, beta)
-    y_exact_values = exact_solution(x_full)
-    err = np.max(np.abs(y - y_exact_values))
-    errors.append(err)
+    P = -1 / x_interior
+    Q = np.zeros(N)
+    R = -1.6 / x_interior**4
+    y_num, x_full = problimite(h, P, Q, R, a, b, alpha, beta)
+    y_exact = exact_solution(x_full[1:-1])
+    error = np.max(np.abs(y_num[1:-1] - y_exact))
+    errors.append(error)
 
-errors = np.array(errors)
 
-# Figure 2 
+log_h = np.log10(h_values)
+log_E = np.log10(errors)
+slopes = (log_E[1:] - log_E[:-1]) / (log_h[1:] - log_h[:-1])
+
+print("Pentes de convergence entre les points:")
+for i, slope in enumerate(slopes):
+    print(f"Entre h={h_values[i]:.0e} et h={h_values[i+1]:.0e}: pente = {slope:.4f}")
+
+# Figure 2
 plt.figure(figsize=(10, 6))
+plt.loglog(h_values, errors, 'bo-', label='Erreur observée')
+plt.loglog(h_values, [errors[0]*(h/h_values[0])**2 for h in h_values], 
+         'r--', label='Référence pente')
 
-plt.loglog(hs, errors, 'bo-', linewidth=2, markersize=8, 
-           label='Erreur maximale $E(h)$')
+plt.xlabel('Pas h (échelle log)')
+plt.ylabel('Erreur maximale E(h) (échelle log)')
+plt.title('Figure 2: Convergence de la méthode (ordre 2 attendu)')
+plt.grid(True, which="both", ls="--")
+plt.legend()
 
-plt.loglog(hs, 10*errors[0]*(hs/hs[0])**2, 'r--', 
-           label='Référence $O(h^2)$')
+for i in range(len(slopes)):
+    plt.text((h_values[i] + h_values[i+1])/2, (errors[i] + errors[i+1])/2, 
+             f'pente={slopes[i]:.2f}', ha='center')
 
-plt.xlabel('Pas de discrétisation $h$', fontsize=12)
-plt.ylabel('Erreur $E(h)$', fontsize=12)
-plt.title('Figure 2: Convergence de la méthode : $E(h) = max|y_i - y(x_i)|$', 
-          fontsize=14)
-
-for i, (h, err) in enumerate(zip(hs, errors)):
-    plt.text(h, err, f'h={h:.0e}\nE={err:.1e}', 
-             ha='center', va='bottom' if i%2 else 'top')
-
-plt.grid(True, which="both", linestyle='--', alpha=0.6)
-plt.legend(fontsize=12)
-plt.tight_layout()
 plt.show()

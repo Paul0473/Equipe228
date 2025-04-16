@@ -42,3 +42,7 @@ if __name__ == "__main__":
     # ----- Test avec sparse -----
     print("Test avec sparse")
     tridiagonal(D, I, S, b)
+
+
+
+
