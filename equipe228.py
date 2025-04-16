@@ -2,61 +2,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 from problimite import problimite
 
-# Définir les bornes et les CL
-a, b = 0.9, 1.0
-alpha, beta = 0, 0
-
-# Solution exacte
-def y_exact(x):
-    d = 1.0
-    c = 0.4 / d
+# Solution exacte corrigée
+def exact_solution(x):
+    c = 0.4
+    d = 1
     return (c - 0.4 / x**2) - (c - 0.4 / d) * (np.log(x) / np.log(0.9))
 
-# Fonctions p(x), q(x), r(x) pour le problème
-def generate_PQR(x):
-    P = 1 / x
-    Q = 0 * x
-    R = -1.6 / x**4
-    return P, Q, R
+# Fonctions du problème
+def p(x): return -1 / x
+def q(x): return 0 * x
+def r(x): return -1.6 / x**4
 
-# a) Comparaison pour h = 1/30 et h = 1/100
-for h in [1/30, 1/100]:
-    x = np.arange(a + h, b, h)
-    P, Q, R = generate_PQR(x)
-    y_num = problimite(h, P, Q, R, a, b, alpha, beta)
-    y_ex = y_exact(x)
+# Paramètres
+a, b = 0.9, 1.0
+alpha, beta = 0.0, 0.0
 
-    plt.plot(x, y_num, label=f"Approx. h={h:.4f}")
-    
-# Tracer la solution exacte
+# --- a) Solutions numériques et tracé ---
+h_values = [1/30, 1/100]
+plt.figure(figsize=(10, 6))
+
 x_exact = np.linspace(a, b, 1000)
-y_exact_vals = y_exact(x_exact)
-plt.plot(x_exact, y_exact_vals, 'k--', label="Solution exacte")
+y_exact = exact_solution(x_exact)
+plt.plot(x_exact, y_exact, 'k-', label='Solution exacte')
 
-plt.xlabel("x")
-plt.ylabel("y(x)")
-plt.title("Comparaison des solutions numériques et exactes")
+for h in h_values:
+    N = int((b - a)/h) - 1
+    x_interior = np.linspace(a + h, b - h, N)
+    P, Q, R = p(x_interior), q(x_interior), r(x_interior)
+    y, x_full = problimite(h, P, Q, R, a, b, alpha, beta)
+    plt.plot(x_full, y, 'o--', label=f'Solution numérique h={h:.4f}')
+
+plt.xlabel('x')
+plt.ylabel('y(x)')
+plt.title('Solution du problème aux limites')
+plt.grid()
 plt.legend()
-plt.grid(True)
 plt.show()
 
-# b) Calcul de l'erreur E(h) pour h = 10^-2, ..., 10^-5
-hs = [10**(-i) for i in range(2, 6)]
+# --- b) Erreurs pour différentes valeurs de h ---
+hs = [1e-2, 1e-3, 1e-4, 1e-5]
 errors = []
 
 for h in hs:
-    x = np.arange(a + h, b, h)
-    P, Q, R = generate_PQR(x)
-    y_num = problimite(h, P, Q, R, a, b, alpha, beta)
-    y_ex = y_exact(x)
-    E = np.max(np.abs(y_num - y_ex))
-    errors.append(E)
+    N = int((b - a)/h) - 1
+    x_interior = np.linspace(a + h, b - h, N)
+    P, Q, R = p(x_interior), q(x_interior), r(x_interior)
+    y, x_full = problimite(h, P, Q, R, a, b, alpha, beta)
+    y_exact = exact_solution(x_full)
+    err = np.max(np.abs(y - y_exact))
+    errors.append(err)
 
-# Tracer E(h) en échelle log-log
-plt.loglog(hs, errors, 'o-', label="Erreur E(h)")
-plt.xlabel("h")
-plt.ylabel("Erreur maximale E(h)")
-plt.title("Erreur en fonction de h (log-log)")
-plt.grid(True, which='both')
+# Tracé de l'erreur en log-log
+plt.figure(figsize=(10, 6))
+plt.loglog(hs, errors, 'o-', label='Erreur maximale')
+plt.xlabel('h')
+plt.ylabel('Erreur E(h)')
+plt.title('Erreur max vs pas de discrétisation (log-log)')
+plt.grid()
 plt.legend()
 plt.show()

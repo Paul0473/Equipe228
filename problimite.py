@@ -13,6 +13,7 @@ def problimite(h, P, Q, R, a, b, alpha, beta):
     alpha, beta : Conditions aux limites
     """
     N = len(P)
+    x = np.linspace(a, b, N+2)
     
     # Construction des vecteurs D, I, S et b
     D = 2 + Q * h**2
@@ -23,6 +24,11 @@ def problimite(h, P, Q, R, a, b, alpha, beta):
     b[-1] += (1 - P[-1] * h / 2) * beta
     
     # Résolution du système
-    y = tridiagonal(D, I, S, b)
+    y_interieur = tridiagonal(D, I, S, b)
     
-    return y
+    y = np.zeros(N+2)
+    y[0] = alpha
+    y[-1] = beta
+    y[1:-1] = y_interieur
+
+    return y, x
